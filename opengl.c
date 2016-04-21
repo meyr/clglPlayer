@@ -1,10 +1,15 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <GL/glut.h>
+#include "opengl.h"
+#include "opencl.h"
 
+static GLuint Mytexture;
 static int glutWindowHandle = 0;
 static int img_width;
 static int img_height;
 static unsigned char *the_image;
+static bool showInfo;
 
 void setImageAttr(int width, int height, unsigned char *image)
 {
@@ -34,49 +39,36 @@ float caculateFPS(void)
 		fps = nbFrames * (1000.0 / diffTime);
 		nbFrames = 0;
 		lastTime = currentTime;
+		printf("%f\n", fps);
 	}
 
 	return fps;
 }
 
-
-void appRender()
+void appRender(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	char strfps[16];
+    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //this updates the particle system by calling the kernel
-    //example->runKernel();
+	//this updates the particle system by calling the kernel
+	//runKernel();
 
-    //render the particles from VBOs
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_POINT_SMOOTH);
-    glPointSize(5.);
-    
-    //printf("color buffer\n");
-    //glBindBuffer(GL_ARRAY_BUFFER, example->c_vbo);
-    glColorPointer(4, GL_FLOAT, 0, 0);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-    //printf("vertex buffer\n");
-    //glBindBuffer(GL_ARRAY_BUFFER, example->p_vbo);
-    glVertexPointer(4, GL_FLOAT, 0, 0);
+        glBindTexture(GL_TEXTURE_2D, Mytexture);
+        glBegin(GL_QUADS);
 
-    //printf("enable client state\n");
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
+	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0,  0.0);
+	glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0,  0.0);
+	glTexCoord2f(1.0, 1.0); glVertex3f(1.0, 1.0, 0.0);
+	glTexCoord2f(1.0, 0.0); glVertex3f(1.0, -1.0, 0.0);
 
-    //Need to disable these for blender
-    glDisableClientState(GL_NORMAL_ARRAY);
+        glEnd();
+    	glutSwapBuffers();
+    	glDisable(GL_TEXTURE_2D);
 
-    //printf("draw arrays\n");
-    //glDrawArrays(GL_POINTS, 0, example->num);
-
-    //printf("disable stuff\n");
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    
-    glutSwapBuffers();
-    caculateFPS();
+	caculateFPS();
 }
 
 void timerCB(int ms)
@@ -86,58 +78,81 @@ void timerCB(int ms)
     glutPostRedisplay();
 }
 
-void printbitmap(const char *msg, double x, double y)
+void idle(void)
 {
-   glRasterPos2d(x, y);
-   while(*msg)
-      glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *msg++);
+	glutPostRedisplay();
 }
 
-void display(void)
+void appDestroy()
 {
-   char strfps[16];
-   glClear(GL_COLOR_BUFFER_BIT);
+	//this makes sure we properly cleanup our OpenCL context
+	if(glutWindowHandle)
+    		glutDestroyWindow(glutWindowHandle);
 
-   // Draw image
-   glRasterPos2d(-1.00, -1.00);
-   glDrawPixels(img_width, img_height,
-                GL_RGB, GL_UNSIGNED_BYTE,
-                the_image);
-
-   // Draw instructions
-   //glColor3d(0.0, 0.0, 0.0);
-   sprintf(strfps, "fps : %2.2f", caculateFPS());
-   printbitmap(strfps, -0.9, 0.9); 
-
-   glutSwapBuffers();
+    	exit(0);
 }
 
+void switchShowInfo(void)
+{
+	showInfo ^= true;	
+}
+
+void appKeyboard(unsigned char key, int x, int y)
+{
+    //this way we can exit the program cleanly
+    switch(key)
+    {
+    	case 'f':
+	case 'F':
+		glutFullScreen();
+		break;
+    	case 'i':
+	case 'I':
+		switchShowInfo();
+		break;
+        case '\033': // escape quits
+        case '\015': // Enter quits    
+        case 'Q':    // Q quits
+        case 'q':    // q (or escape) quits
+            	appDestroy();
+            	break;
+	default : break;
+    }
+}
 
 
 void init_gl(int argc, char** argv)
 {
-
-	int window_width = 800;
-	int window_height = 600;
-	
+	int i;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(glutGet(GLUT_SCREEN_WIDTH)/2, glutGet(GLUT_SCREEN_HEIGHT)/2);
 	glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH)/4, 
 				glutGet(GLUT_SCREEN_HEIGHT)/4);
 
-    
-	glutWindowHandle = glutCreateWindow("auo 3d image show");
+	glutWindowHandle = glutCreateWindow("auo CLGL image show");
 
-	glutFullScreen();
+	/* create texture buffer */
+    	glGenTextures( 1, &Mytexture);    // Load 2 texture names into array, this function will assign value into array MytextureName
+        glBindTexture(GL_TEXTURE_2D, Mytexture);    // Texture buffer #i is active now
+        glClearColor (0.0, 0.0, 0.0, 0.0);
+        glShadeModel(GL_FLAT);
+        glEnable(GL_DEPTH_TEST);
 
-	// Tell OpenGL to treat image as normal array
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	glutDisplayFunc(display); //main rendering function
-	//glutDisplayFunc(appRender); //main rendering function
-	glutTimerFunc(30, timerCB, 30); //determin a minimum time between frames
-	//glutKeyboardFunc(appKeyboard);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, the_image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//glutFullScreen();
+
+	glutDisplayFunc(appRender); //main rendering function
+	//glutTimerFunc(30, timerCB, 30); //determin a minimum time between frames
+	glutIdleFunc(idle);
+	glutKeyboardFunc(appKeyboard);
 	//glutMouseFunc(appMouse);
 	//glutMotionFunc(appMotion);
 

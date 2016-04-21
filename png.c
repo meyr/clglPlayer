@@ -1,10 +1,10 @@
 #include <png.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
-#include "opengl.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, unsigned char **outData) {
+bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, unsigned char **outData) 
+{
     png_structp png_ptr;
     png_infop info_ptr;
     unsigned int sig_read = 0;
@@ -122,29 +122,16 @@ bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, 
 }
 
 
-int main(int argc, char *argv[])
+char openPNG(char *filename, unsigned char *image, int *width, int *height)
 {
-	char filename[32] = "logo.png";
 	bool brtn, hasAlpha;
-	int width, height; 
-	unsigned char *image;
 
-	if (argc >= 2)
-		strcpy(filename,argv[1]);
-	
 	printf("open file %s\n",filename);
-	brtn = loadPngImage(filename, &width, &height, &hasAlpha, &image);
+	brtn = loadPngImage(filename, width, height, &hasAlpha, &image);
 	if (brtn) {
-		printf("width : %d , height : %d\n", width, height);
+		printf("width : %d , height : %d\n", *width, *height);
 		printf("alpha : %s\n", hasAlpha ? "Yes" : "No");
 	}
-
-
-	/* openGL */
-	init_gl(argc, argv);
-	setImageAttr(width, height, image);
-	glutMainLoop();
-
-	free(image);	
-	return 0;
+	
+	return brtn ? 1 : 0;
 }
