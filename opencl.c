@@ -2,7 +2,8 @@
 #include <string.h>
 #include <CL/cl.h>
 #include <GL/glx.h>
-#include "cl_gl.h"
+#include <CL/cl_gl.h>
+#include "opengl.h"
 
 cl_uint numDevices;
 cl_device_id *devices;
@@ -12,6 +13,9 @@ cl_command_queue command_queue;
 cl_program program;
 cl_kernel kernel;
 unsigned int deviceUsed;
+cl_mem cl_pbos[2] = {0,0};
+
+static const char* CL_GL_SHARING_EXT = "cl_khr_gl_sharing";
 
 static char *file_contents(const char *filename, int *length)
 {
@@ -199,8 +203,11 @@ const char* oclErrorString(cl_int error)
 void init_cl(void)
 {
 	cl_int err;
-
+	int supported;
 	cl_context_properties properties[7];
+	int ext_size = 1024;
+	char* ext_string;
+
 		     
 	printf("Initialize OpenCL object and context\n");
 	//setup devices and context
@@ -215,7 +222,7 @@ void init_cl(void)
 	// we should probably expose the device type to the user
 	// the other common option is CL_DEVICE_TYPE_CPU
 	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
-	printf("clGetDeviceIDs (get number of devices): %s\n", oclErrorString(err));
+	printf("clGetDeviceIDs (get number of devices %d): %s\n", numDevices, oclErrorString(err));
 	
 	
 	// Create the device list
@@ -234,6 +241,19 @@ void init_cl(void)
 
 	context = clCreateContext(properties, 1, devices, NULL, NULL, &err);
 	printf("clCreateContext: %s\n", oclErrorString(err));
+	
+	// Get string containing supported device extensions
+	ext_string = (char*)malloc(ext_size);
+	err = clGetDeviceInfo(devices[0], CL_DEVICE_EXTENSIONS, ext_size, ext_string, NULL);
+	printf("clGetDeviceInfo: %s\n", oclErrorString(err));
+	printf("%s\n", ext_string);
+	// Search for GL support in extension string (space delimited)
+	//supported = IsExtensionSupported(CL_GL_SHARING_EXT, ext_string, ext_size);
+	//if(supported)
+	// 	printf("Found GL Sharing Support!\n");
+
+
+
 	//for right now we just use the first available device
 	//later you may have criteria (such as support for different extensions)
 	//that you want to use to select the device
@@ -242,7 +262,6 @@ void init_cl(void)
 	//create the command queue we will use to execute OpenCL commands
 	command_queue = clCreateCommandQueue(context, devices[deviceUsed], 0, &err);
 	printf("clCreateConnabdQueue: %s\n", oclErrorString(err));
-
 
 }
 

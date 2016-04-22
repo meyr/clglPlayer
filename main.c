@@ -26,11 +26,16 @@ int main(int argc, char *argv[])
 	/* openGL */
 	setImageAttr(width, height, image);
 	init_gl(argc, argv);
+	createPBO(&pbo_source);
+	createPBO(&pbo_dest);
+        // create texture for blitting onto the screen
+        createTexture(&tex_screen);        
+
 
 	/* openCL */
-	//init_cl();
-	//clloadProgram("../algorithm.cl");
-	//transferParam();
+	init_cl();
+	clloadProgram("../algorithm.cl");
+	loadData();
 
 	glutMainLoop();
 

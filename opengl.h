@@ -4,7 +4,13 @@
 
 void init_gl(int argc, char** argv);
 void setImageAttr(int width, int height, unsigned char *image);
-GLuint createVBO(const void* data, int dataSize, GLenum target, GLenum usage);
-extern int gl_image_id;
+void createPBO(GLuint* pbo);
+void createTexture( GLuint* tex_name);
+void loadData(void);
 
+extern GLuint orign_texture;
+extern GLuint modify_texture;
+extern GLuint pbo_source;
+extern GLuint pbo_dest;
+extern GLuint tex_screen;
 #endif
