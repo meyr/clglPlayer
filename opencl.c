@@ -345,4 +345,14 @@ void clloadProgram(const char* relative_path)
 	free(cSourceCL);
 }
 
+void createGLBuffer(void)
+{
+	cl_int err;
+
+        cl_pbos[0] = clCreateFromGLBuffer(context, CL_MEM_READ_ONLY , pbo_source, &err);
+	printf("clCreateFromGLBuffer(source): %s\n", oclErrorString(err));
+        cl_pbos[1] = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, pbo_dest,   &err);
+	printf("clCreateFromGLBuffer(dest): %s\n", oclErrorString(err));
+		
+}
 

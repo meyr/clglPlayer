@@ -6,7 +6,7 @@ void init_gl(int argc, char** argv);
 void setImageAttr(int width, int height, unsigned char *image);
 void createPBO(GLuint* pbo);
 void createTexture( GLuint* tex_name);
-void loadData(void);
+void pushImage(void);
 
 extern GLuint orign_texture;
 extern GLuint modify_texture;

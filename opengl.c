@@ -14,7 +14,6 @@ static int glutWindowHandle = 0;
 static int img_width;
 static int img_height;
 static unsigned char *the_image;
-static bool showInfo;
 
 void setImageAttr(int width, int height, unsigned char *image)
 {
@@ -52,17 +51,19 @@ float caculateFPS(void)
 	return fps;
 }
 
-// copy image and process using OpenCL
-//*****************************************************************************
-void processImage()
+void pushImage(void)
 {
 	// activate destination buffer
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
 	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, img_width * img_height * 3, the_image);
 
+}
+
+void processImage(void)
+{
 	// download texture from PBO
-	//glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
+	//glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
 	glBindTexture(GL_TEXTURE_2D, tex_screen);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
 	                img_width, img_height, 
@@ -72,7 +73,7 @@ void processImage()
 
 void appRender(void)
 {
-
+	runKernel();
 
 	processImage();
 
@@ -122,32 +123,30 @@ void appDestroy()
     	exit(0);
 }
 
-void switchShowInfo(void)
-{
-	showInfo ^= true;	
-}
-
 void appKeyboard(unsigned char key, int x, int y)
 {
-    //this way we can exit the program cleanly
-    switch(key)
-    {
-    	case 'f':
-	case 'F':
-		glutFullScreen();
-		break;
-    	case 'i':
-	case 'I':
-		switchShowInfo();
-		break;
-        case '\033': // escape quits
-        case '\015': // Enter quits    
-        case 'Q':    // Q quits
-        case 'q':    // q (or escape) quits
-            	appDestroy();
-            	break;
-	default : break;
-    }
+	static bool fullScreen = false;
+	//this way we can exit the program cleanly
+	switch(key) {
+		case 'f':
+		case 'F':
+			fullScreen ^= true;
+			if (fullScreen)
+				glutFullScreen();
+			else {
+				glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH)/2,
+						  glutGet(GLUT_SCREEN_HEIGHT)/2);
+				glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH)/4,
+						   glutGet(GLUT_SCREEN_HEIGHT)/4);
+			}
+			glutPostRedisplay();
+		 	break;
+		case '\033': 
+		case '\015':
+		case 'Q':   
+		case 'q': appDestroy(); break;
+		default : break;
+	}
 }
 
 
@@ -173,16 +172,6 @@ void init_gl(int argc, char** argv)
 
 }
 
-void loadData(void)
-{
-	cl_int err;
-
-        cl_pbos[0] = clCreateFromGLBuffer(context, CL_MEM_READ_ONLY , pbo_source, &err);
-	printf("clCreateFromGLBuffer(source): %s\n", oclErrorString(err));
-        cl_pbos[1] = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, pbo_dest,   &err);
-	printf("clCreateFromGLBuffer(dest): %s\n", oclErrorString(err));
-		
-}
 
 void createPBO(GLuint* pbo)
 {

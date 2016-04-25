@@ -30,12 +30,14 @@ int main(int argc, char *argv[])
 	createPBO(&pbo_dest);
         // create texture for blitting onto the screen
         createTexture(&tex_screen);        
+	pushImage();
 
 
 	/* openCL */
 	init_cl();
 	clloadProgram("../algorithm.cl");
-	loadData();
+	createGLBuffer();
+	transferParam();
 
 	glutMainLoop();
 

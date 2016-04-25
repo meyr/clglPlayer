@@ -1,6 +1,9 @@
-__kernel void algorithm(__global char* clgl_mem, __global char* cl_buffer)
+__kernel void algorithm(__global char* mem_source, __global char* mem_dest)
 {
     unsigned int i = get_global_id(0);
 
-    cl_buffer[i] = clgl_mem[i];
+	if ((i/2880)%2 == 0)
+    		mem_dest[i+2880] = mem_source[i];
+	else
+    		mem_dest[i-2880] = mem_source[i];
 }
