@@ -4,8 +4,9 @@
 
 void init_gl(int argc, char** argv);
 void setImageAttr(int width, int height, unsigned char *image);
-void createPBO(GLuint* pbo);
-void createTexture( GLuint* tex_name);
+void createGLBuffers(GLuint *pbo);
+void createGLTexture(GLuint *tex_name);
+void createGLRenderBuffers(GLuint *_index);
 void pushImage(void);
 
 extern GLuint orign_texture;

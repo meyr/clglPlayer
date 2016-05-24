@@ -351,8 +351,15 @@ void createGLBuffer(void)
 
         cl_pbos[0] = clCreateFromGLBuffer(context, CL_MEM_READ_ONLY , pbo_source, &err);
 	printf("clCreateFromGLBuffer(source): %s\n", oclErrorString(err));
-        cl_pbos[1] = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, pbo_dest,   &err);
+	cl_pbos[1] = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, pbo_dest,   &err);
 	printf("clCreateFromGLBuffer(dest): %s\n", oclErrorString(err));
+
+	//cl_pbos[1] = clCreateFromGLRenderbuffer(context, CL_MEM_READ_ONLY, pbo_dest,   &err);
+	//printf("clCreateFromGLRenderBuffer(dest): %s\n", oclErrorString(err));
 		
+	//cl_pbos[1] = clCreateFromGLTexture2D(context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+	//				pbo_dest,   &err);
+	//printf("clCreateFromGLTexture2D(dest): %s\n", oclErrorString(err));
+
 }
 

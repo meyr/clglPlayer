@@ -26,10 +26,10 @@ int main(int argc, char *argv[])
 	/* openGL */
 	setImageAttr(width, height, image);
 	init_gl(argc, argv);
-	createPBO(&pbo_source);
-	createPBO(&pbo_dest);
+	createGLBuffers(&pbo_source);
+	createGLBuffers(&pbo_dest);
         // create texture for blitting onto the screen
-        createTexture(&tex_screen);        
+        createGLTexture(&tex_screen);        
 	pushImage();
 
 

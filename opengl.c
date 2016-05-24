@@ -4,16 +4,39 @@
 #include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"
+#include "shader.h"
 
 GLuint pbo_source;
 GLuint pbo_dest;
 GLuint tex_screen;                          // (offscreen) render target
 GLuint orign_texture;
 GLuint modify_texture;
+GLuint programID;
+GLuint TextureID;
+GLuint vertexbuffer, uvbuffer;
 static int glutWindowHandle = 0;
 static int img_width;
 static int img_height;
 static unsigned char *the_image;
+const char titleName[] = "auo clgl player";
+
+const GLfloat g_vertex_data[] = { 
+	-1.0f, -1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f,
+	 1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f,
+};
+
+const GLfloat g_uv_data[] = { 
+	0.00f, 0.00f, 
+	1.00f, 0.00f, 
+	0.00f, 1.00f, 
+	1.00f, 0.00f, 
+	1.00f, 1.00f, 
+	0.00f, 1.00f, 
+};
 
 void setImageAttr(int width, int height, unsigned char *image)
 {
@@ -29,7 +52,7 @@ float caculateFPS(void)
 	double currentTime = glutGet(GLUT_ELAPSED_TIME);
 	double diffTime;
 	static float fps;
-	char strfps[16];
+	char strfps[32];
 
 	nbFrames++;
 	if (lastTime == 0) {
@@ -44,7 +67,7 @@ float caculateFPS(void)
 		fps = nbFrames * (1000.0 / diffTime);
 		nbFrames = 0;
 		lastTime = currentTime;
-		sprintf(strfps, "fps : %2.2f\n", fps);
+		sprintf(strfps, "%s : fps : %2.2f\n", titleName, fps);
 		glutSetWindowTitle(strfps);
 	}
 
@@ -69,6 +92,19 @@ void processImage(void)
 	                img_width, img_height, 
 	                GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
+	//glGenerateMipmap(GL_TEXTURE_2D);
+
+	/* bind our texture in texture unit 0 */
+	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, tex_screen);
+	/* set our texture sampler to user texture unit 0 */
+	glUniform1i(TextureID, 0);
+
+
 }
 
 void appRender(void)
@@ -79,26 +115,11 @@ void appRender(void)
 
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//this updates the particle system by calling the kernel
-	//runKernel();
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glDrawArrays(GL_TRIANGLES, 0, 2 * 3);
 
-        //glBindTexture(GL_TEXTURE_2D, orign_texture);
-        glBegin(GL_QUADS);
-
-	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0,  0.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0,  0.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f(1.0, 1.0, 0.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f(1.0, -1.0, 0.0);
-
-        glEnd();
-    	glutSwapBuffers();
-    	glDisable(GL_TEXTURE_2D);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+	glutSwapBuffers();
+	glFlush();
+	glFinish();
 	caculateFPS();
 }
 
@@ -149,6 +170,13 @@ void appKeyboard(unsigned char key, int x, int y)
 	}
 }
 
+void appReshape(GLsizei w, GLsizei h)
+{
+        GLsizei vsize;
+
+	vsize = (w < h) ? w : h;
+        glViewport(0,0,vsize,vsize);
+}
 
 void init_gl(int argc, char** argv)
 {
@@ -159,21 +187,67 @@ void init_gl(int argc, char** argv)
 	glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH)/4, 
 				glutGet(GLUT_SCREEN_HEIGHT)/4);
 
-	glutWindowHandle = glutCreateWindow("auo CLGL image show");
+	glutWindowHandle = glutCreateWindow(titleName);
 
 	//glutFullScreen();
 
 	glutDisplayFunc(appRender); //main rendering function
-	//glutTimerFunc(30, timerCB, 30); //determin a minimum time between frames
+	//glutTimerFunc(16, timerCB, 16); //determin a minimum time between frames
 	glutIdleFunc(idle);
 	glutKeyboardFunc(appKeyboard);
+	//glutReshapeFunc(appReshape);
 	//glutMouseFunc(appMouse);
 	//glutMotionFunc(appMotion);
+
+	/* load shader */
+	/* Create and compile our GLSL program from the shaders */
+	programID = LoadShaders("opengl.vert", "opengl.frag");
+
+	/* get a handle for our texture uniform */
+	TextureID = glGetUniformLocation(programID, "myTextureSampler");
+
+	/* transfer vertex/uv data to opengl */
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_data), g_vertex_data, GL_STATIC_DRAW);
+
+
+	glGenBuffers(1, &uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_data), g_uv_data, GL_STATIC_DRAW);
+
+
+	/* uset our shader */
+	glUseProgram(programID);
+
+	/* 1rst attribute buffer : vertices */
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(
+		0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*)0            // array buffer offset
+	);
+	
+	// 2nd attribute buffer : UVs
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(
+		1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+		2,                                // size : U+V => 2
+		GL_FLOAT,                         // type
+		GL_FALSE,                         // normalized?
+		0,                                // stride
+		(void*)0                          // array buffer offset
+	);
 
 }
 
 
-void createPBO(GLuint* pbo)
+void createGLBuffers(GLuint* pbo)
 {
 	unsigned int size_tex_data;
 	unsigned int num_texels;
@@ -194,19 +268,33 @@ void createPBO(GLuint* pbo)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void createTexture( GLuint* tex_name)
+void createGLRenderBuffers(GLuint *_index)
 {
-    // create a texture
-    glGenTextures(1, tex_name);
-    glBindTexture(GL_TEXTURE_2D, *tex_name);
-
-    // set basic parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // buffer data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	// create buffer object
+	glGenRenderbuffers(1, _index);
+	glBindRenderbuffer(GL_RENDERBUFFER, *_index);
+	
+	// buffer data
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, img_width, img_height);
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
+
+void createGLTexture( GLuint* tex_name)
+{
+	// create a texture
+	glGenTextures(1, tex_name);
+	glBindTexture(GL_TEXTURE_2D, *tex_name);
+
+	// set basic parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// buffer data
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
