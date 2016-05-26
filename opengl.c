@@ -18,7 +18,8 @@ static int glutWindowHandle = 0;
 static int img_width;
 static int img_height;
 static unsigned char *the_image;
-const char titleName[] = "auo clgl player";
+static const char titleName[] = "auo clgl player";
+static bool selectSource;
 
 const GLfloat g_vertex_data[] = { 
 	-1.0f, -1.0f, 0.0f,
@@ -52,7 +53,7 @@ float caculateFPS(void)
 	double currentTime = glutGet(GLUT_ELAPSED_TIME);
 	double diffTime;
 	static float fps;
-	char strfps[32];
+	char strfps[48];
 
 	nbFrames++;
 	if (lastTime == 0) {
@@ -67,7 +68,8 @@ float caculateFPS(void)
 		fps = nbFrames * (1000.0 / diffTime);
 		nbFrames = 0;
 		lastTime = currentTime;
-		sprintf(strfps, "%s : fps : %2.2f\n", titleName, fps);
+		sprintf(strfps, "%s %s: %2.2f fps\n", titleName,
+				selectSource ? "source" : "dest", fps);
 		glutSetWindowTitle(strfps);
 	}
 
@@ -85,7 +87,10 @@ void pushImage(void)
 void processImage(void)
 {
 	// download texture from PBO
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
+	if (selectSource)
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
+	else
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
 	//glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
 	glBindTexture(GL_TEXTURE_2D, tex_screen);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
@@ -162,10 +167,14 @@ void appKeyboard(unsigned char key, int x, int y)
 			}
 			glutPostRedisplay();
 		 	break;
-		case '\033': 
-		case '\015':
+		case 's':
+		case 'S':
+			selectSource ^= true;	
+			break;
 		case 'Q':   
-		case 'q': appDestroy(); break;
+		case 'q': 
+			appDestroy(); 
+			break;
 		default : break;
 	}
 }
