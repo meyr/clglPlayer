@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"
 #include "shader.h"
+#include "utility.h"
 
 GLuint pbo_source;
 GLuint pbo_dest;
 GLuint tex_screen;                          // (offscreen) render target
-GLuint orign_texture;
-GLuint modify_texture;
 GLuint programID;
 GLuint TextureID;
 GLuint vertexbuffer, uvbuffer;
@@ -53,12 +53,12 @@ float caculateFPS(void)
 	double currentTime = glutGet(GLUT_ELAPSED_TIME);
 	double diffTime;
 	static float fps;
-	char strfps[48];
+
 
 	nbFrames++;
 	if (lastTime == 0) {
 		lastTime = currentTime;
-		return;
+		return 0.0;
 	}
 
 
@@ -68,9 +68,6 @@ float caculateFPS(void)
 		fps = nbFrames * (1000.0 / diffTime);
 		nbFrames = 0;
 		lastTime = currentTime;
-		sprintf(strfps, "%s %s: %2.2f fps\n", titleName,
-				selectSource ? "source" : "dest", fps);
-		glutSetWindowTitle(strfps);
 	}
 
 	return fps;
@@ -112,20 +109,36 @@ void processImage(void)
 
 }
 
+void showTitle(float fps)
+{
+	char strfps[48];
+
+	sprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
+			selectSource ? "source" : "result", fps);
+	glutSetWindowTitle(strfps);
+
+}
+
 void appRender(void)
 {
+	double pTime0, pTime1, pTime2;
+	//shrDeltaT(0);
 	runKernel();
-
+	//pTime0 = shrDeltaT(0);
+	//shrDeltaT(1);
 	processImage();
-
-    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//pTime1 = shrDeltaT(1);
+	//pTime2 = shrDeltaT(2);
+	//printf("runkernel : %.4f, processImage : %.6f, appRender : %.4f\n", pTime0, pTime1, pTime2);
+    	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    	glClear(GL_COLOR_BUFFER_BIT);
 
 	glDrawArrays(GL_TRIANGLES, 0, 2 * 3);
 
 	glutSwapBuffers();
 	glFlush();
-	glFinish();
-	caculateFPS();
+	//glFinish();
+	showTitle(caculateFPS());
 }
 
 void timerCB(int ms)
@@ -140,13 +153,17 @@ void idle(void)
 	glutPostRedisplay();
 }
 
-void appDestroy()
+void exit_gl(void)
 {
-	//this makes sure we properly cleanup our OpenCL context
-	if(glutWindowHandle)
-    		glutDestroyWindow(glutWindowHandle);
+	printf("%s\n", __func__);
+	glUseProgram(0);
+	glDeleteProgram(programID);
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &pbo_source);
+	glDeleteBuffers(1, &pbo_dest);
+	glDeleteTextures(1, &tex_screen);
 
-    	exit(0);
 }
 
 void appKeyboard(unsigned char key, int x, int y)
@@ -173,7 +190,7 @@ void appKeyboard(unsigned char key, int x, int y)
 			break;
 		case 'Q':   
 		case 'q': 
-			appDestroy(); 
+			glutLeaveMainLoop();
 			break;
 		default : break;
 	}
@@ -181,10 +198,10 @@ void appKeyboard(unsigned char key, int x, int y)
 
 void appReshape(GLsizei w, GLsizei h)
 {
-        GLsizei vsize;
-
-	vsize = (w < h) ? w : h;
-        glViewport(0,0,vsize,vsize);
+	//GLsizei vsize;
+	//
+	//vsize = (w < h) ? w : h;
+        glViewport(0,0,w,h);
 }
 
 void init_gl(int argc, char** argv)
@@ -196,15 +213,16 @@ void init_gl(int argc, char** argv)
 	glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH)/4, 
 				glutGet(GLUT_SCREEN_HEIGHT)/4);
 
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	glutWindowHandle = glutCreateWindow(titleName);
 
 	//glutFullScreen();
 
 	glutDisplayFunc(appRender); //main rendering function
-	//glutTimerFunc(16, timerCB, 16); //determin a minimum time between frames
+	//glutTimerFunc(33, timerCB, 33); //determin a minimum time between frames
 	glutIdleFunc(idle);
 	glutKeyboardFunc(appKeyboard);
-	//glutReshapeFunc(appReshape);
+	glutReshapeFunc(appReshape);
 	//glutMouseFunc(appMouse);
 	//glutMotionFunc(appMotion);
 

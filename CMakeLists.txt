@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(clglPlayer)
-SET(SRCS main.c opengl.c opencl.c algorithm.c png.c shader.c)
+SET(SRCS main.c opengl.c opencl.c algorithm.c png.c shader.c utility.c)
 SET(EXEC clglPlayer)
 SET(PNG_LIB png)
 #SET(OPENGL_LIB GL glut GLU GLEW)

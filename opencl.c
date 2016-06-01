@@ -345,7 +345,7 @@ void clloadProgram(const char* relative_path)
 	free(cSourceCL);
 }
 
-void createGLBuffer(void)
+void createCLBufferFromGL(void)
 {
 	cl_int err;
 

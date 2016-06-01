@@ -36,13 +36,13 @@ int main(int argc, char *argv[])
 	/* openCL */
 	init_cl();
 	clloadProgram("../algorithm.cl");
-	createGLBuffer();
+	createCLBufferFromGL();
 	transferParam();
-
+	
 	glutMainLoop();
-
 exit:
-	//exit_cl();
+	exit_cl();
+	exit_gl();
 	free(image);	
 err:
 	return 0;

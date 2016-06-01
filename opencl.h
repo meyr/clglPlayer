@@ -9,7 +9,7 @@ void clloadProgram(const char* relative_path);
 const char* oclErrorString(cl_int error);
 void transferParam(void);
 void runKernel(void);
-void createGLbuffer(void);
+void createCLbufferFromGL(void);
 
 extern cl_kernel kernel;
 extern cl_program program;
