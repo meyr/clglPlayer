@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <CL/cl.h>
-#include <GL/glx.h>
 #include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"

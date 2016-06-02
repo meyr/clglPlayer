@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <GL/glut.h>
 #include <GL/freeglut.h>
 #include <CL/cl_gl.h>
@@ -19,7 +18,7 @@ static int img_width;
 static int img_height;
 static unsigned char *the_image;
 static const char titleName[] = "auo clgl player";
-static bool selectSource;
+static char selectSource;
 
 const GLfloat g_vertex_data[] = { 
 	-1.0f, -1.0f, 0.0f,
@@ -114,7 +113,7 @@ void showTitle(float fps)
 	char strfps[48];
 
 	sprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
-			selectSource ? "source" : "result", fps);
+			selectSource == 0 ? "source" : "result", fps);
 	glutSetWindowTitle(strfps);
 
 }
@@ -168,12 +167,12 @@ void exit_gl(void)
 
 void appKeyboard(unsigned char key, int x, int y)
 {
-	static bool fullScreen = false;
+	static char fullScreen = 0;
 	//this way we can exit the program cleanly
 	switch(key) {
 		case 'f':
 		case 'F':
-			fullScreen ^= true;
+			fullScreen = (fullScreen == 0 ? 1 : 0);
 			if (fullScreen)
 				glutFullScreen();
 			else {
@@ -186,7 +185,7 @@ void appKeyboard(unsigned char key, int x, int y)
 		 	break;
 		case 's':
 		case 'S':
-			selectSource ^= true;	
+			selectSource = (selectSource == 0 ? 1 : 0);	
 			break;
 		case 'Q':   
 		case 'q': 

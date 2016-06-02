@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <GL/glut.h>
+#ifdef _WIN32
+#	include <GL/glext.h>
+#endif
 
-static GLchar* ReadShader( const char* filename )
+static GLubyte* ReadShader( const char* filename )
 {
 	int len;
 	FILE *infile;
-	GLchar *source;
+	GLubyte *source;
 
 	infile = fopen(filename, "rb");
 	
