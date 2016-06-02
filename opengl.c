@@ -6,6 +6,9 @@
 #include "opencl.h"
 #include "shader.h"
 #include "utility.h"
+#ifdef _WIN32
+#include <GL/glext.h>
+#endif
 
 GLuint pbo_source;
 GLuint pbo_dest;
@@ -154,7 +157,6 @@ void idle(void)
 
 void exit_gl(void)
 {
-	printf("%s\n", __func__);
 	glUseProgram(0);
 	glDeleteProgram(programID);
 	glDeleteBuffers(1, &vertexbuffer);

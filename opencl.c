@@ -57,8 +57,9 @@ static cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
     cl_uint num_platforms;
     cl_platform_id* clPlatformIDs;
     cl_int ciErrNum;
-    *clSelectedPlatformID = NULL;
     cl_uint i = 0;
+
+    *clSelectedPlatformID = NULL;
 
     // Get OpenCL platform count
     ciErrNum = clGetPlatformIDs (0, NULL, &num_platforms);
