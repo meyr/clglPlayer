@@ -4,6 +4,7 @@
 #include <GL/glx.h>
 #include <CL/cl_gl.h>
 #include "opengl.h"
+#include "opencl.h"
 
 cl_uint numDevices;
 cl_device_id *devices;
@@ -216,19 +217,19 @@ void init_cl(void)
 	//it comes from the NVIDIA SDK example code
 	err = oclGetPlatformID(&platform);
 	//oclErrorString is also defined in util.cpp and comes from the NVIDIA SDK
-	printf("oclGetPlatformID: %s\n", oclErrorString(err));
+	checkError("oclGetPlatformID", err);
 	
 	// Get the number of GPU devices available to the platform
 	// we should probably expose the device type to the user
 	// the other common option is CL_DEVICE_TYPE_CPU
 	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
-	printf("clGetDeviceIDs (get number of devices %d): %s\n", numDevices, oclErrorString(err));
+	checkError("clGetDeviceIDs", err);
 	
 	
 	// Create the device list
 	devices = (cl_device_id *)malloc(sizeof(cl_device_id) * numDevices);
 	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numDevices, devices, NULL);
-	printf("clGetDeviceIDs (create device list): %s\n", oclErrorString(err));
+	checkError("clGetDeviceIDs", err);
 	
 	//create the context
 	properties[0] = CL_GL_CONTEXT_KHR;
@@ -240,13 +241,13 @@ void init_cl(void)
 	properties[6] = 0;
 
 	context = clCreateContext(properties, 1, devices, NULL, NULL, &err);
-	printf("clCreateContext: %s\n", oclErrorString(err));
+	checkError("clCreateContext", err);
 	
 	// Get string containing supported device extensions
 	ext_string = (char*)malloc(ext_size);
 	err = clGetDeviceInfo(devices[0], CL_DEVICE_EXTENSIONS, ext_size, ext_string, NULL);
-	printf("clGetDeviceInfo: %s\n", oclErrorString(err));
-	printf("%s\n", ext_string);
+	checkError("clGetDeviceInfo", err);
+	//printf("%s\n", ext_string);
 	// Search for GL support in extension string (space delimited)
 	//supported = IsExtensionSupported(CL_GL_SHARING_EXT, ext_string, ext_size);
 	//if(supported)
@@ -261,7 +262,7 @@ void init_cl(void)
 	
 	//create the command queue we will use to execute OpenCL commands
 	command_queue = clCreateCommandQueue(context, devices[deviceUsed], 0, &err);
-	printf("clCreateConnabdQueue: %s\n", oclErrorString(err));
+	checkError("clCreateConnabdQueue", err);
 
 }
 
@@ -304,18 +305,17 @@ static void clbuildExecutable()
 	// build the program
 	//err = clBuildProgram(program, 0, NULL, "-cl-nv-verbose", NULL, NULL);
 	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-	printf("clBuildProgram: %s\n", oclErrorString(err));
+	checkError("clBuildProgram", err);
 	err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &build_status, NULL);
 	err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 	build_log = (char *)malloc(sizeof(char) * (ret_val_size + 1));
 	err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 	build_log[ret_val_size] = '\0';
 	printf("BUILD LOG: \n %s", build_log);
-	printf("program built\n");
 	free(build_log);
 
 	kernel = clCreateKernel(program, "algorithm", &err);
-	printf("clCreateKernel: %s\n", oclErrorString(err));
+	checkError("clCreateKernel", err);
 }
 
 void clloadProgram(const char* relative_path)
@@ -337,7 +337,7 @@ void clloadProgram(const char* relative_path)
 	// create the program
 	program = clCreateProgramWithSource(context, 1,
 	                  (const char **) &cSourceCL, &program_length, &err);
-	printf("clCreateProgramWithSource: %s\n", oclErrorString(err));
+	checkError("clCreateProgramWithSource", err);
 	
 	clbuildExecutable();
 	
@@ -350,9 +350,9 @@ void createCLBufferFromGL(void)
 	cl_int err;
 
         cl_pbos[0] = clCreateFromGLBuffer(context, CL_MEM_READ_ONLY , pbo_source, &err);
-	printf("clCreateFromGLBuffer(source): %s\n", oclErrorString(err));
+	checkError("clCreateFromGLBuffer(source)", err);
 	cl_pbos[1] = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, pbo_dest,   &err);
-	printf("clCreateFromGLBuffer(dest): %s\n", oclErrorString(err));
+	checkError("clCreateFromGLBuffer(dest)", err);
 
 	//cl_pbos[1] = clCreateFromGLRenderbuffer(context, CL_MEM_READ_ONLY, pbo_dest,   &err);
 	//printf("clCreateFromGLRenderBuffer(dest): %s\n", oclErrorString(err));

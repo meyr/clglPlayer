@@ -17,4 +17,10 @@ extern cl_context context;
 extern cl_command_queue command_queue;
 extern cl_mem cl_pbos[2];
 
+#define checkError(func, err) \
+	do { \
+		if (err != CL_SUCCESS) \
+			printf(func ": %s\n", oclErrorString(err));\
+	} while(0)
+
 #endif

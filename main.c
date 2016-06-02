@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
 	/* openCL */
 	init_cl();
-	clloadProgram("../algorithm.cl");
+	clloadProgram("./algorithm.cl");
 	createCLBufferFromGL();
 	transferParam();
 	
