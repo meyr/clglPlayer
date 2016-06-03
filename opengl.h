@@ -2,6 +2,10 @@
 #define __OPENGL_H
 #include <GL/glut.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 void init_gl(int argc, char** argv);
 void exit_gl(void);
 void setImageAttr(int width, int height, unsigned char *image);
@@ -15,4 +19,7 @@ extern GLuint modify_texture;
 extern GLuint pbo_source;
 extern GLuint pbo_dest;
 extern GLuint tex_screen;
+#ifdef  __cplusplus
+}
+#endif
 #endif

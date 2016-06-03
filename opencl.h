@@ -2,6 +2,9 @@
 #define __OPENCL_H
 #include <CL/cl.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 void init_cl(void);
 void exit_cl(void);
@@ -22,5 +25,9 @@ extern cl_mem cl_pbos[2];
 		if (err != CL_SUCCESS) \
 			printf(func ": %s\n", oclErrorString(err));\
 	} while(0)
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif
