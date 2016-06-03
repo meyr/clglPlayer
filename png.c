@@ -1,9 +1,8 @@
 #include <png.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, unsigned char **outData) 
+char loadPngImage(char *name, int *outWidth, int *outHeight, char *outHasAlpha, unsigned char **outData) 
 {
     png_structp png_ptr;
     png_infop info_ptr;
@@ -12,7 +11,7 @@ bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, 
     FILE *fp;
     
     if ((fp = fopen(name, "rb")) == NULL)
-        return false;
+        return 0;
     
     /* Create and initialize the png_struct
      * with the desired error handler
@@ -30,7 +29,7 @@ bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, 
     
     if (png_ptr == NULL) {
         fclose(fp);
-        return false;
+        return 0;
     }
     
     /* Allocate/initialize the memory
@@ -39,7 +38,7 @@ bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, 
     if (info_ptr == NULL) {
         fclose(fp);
         png_destroy_read_struct(&png_ptr, NULL, NULL);
-        return false;
+        return 0;
     }
     
     /* Set error handling if you are
@@ -58,7 +57,7 @@ bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, 
         fclose(fp);
         /* If we get here, we had a
          * problem reading the file */
-        return false;
+        return 0;
     }
     
     /* Set up the output control if
@@ -118,20 +117,20 @@ bool loadPngImage(char *name, int *outWidth, int *outHeight, bool *outHasAlpha, 
     fclose(fp);
     
     /* That's it */
-    return true;
+    return 1;
 }
 
 
 char openPNG(char *filename, unsigned char *image, int *width, int *height)
 {
-	bool brtn, hasAlpha;
+	char brtn, hasAlpha;
 
 	printf("open file %s\n",filename);
 	brtn = loadPngImage(filename, width, height, &hasAlpha, &image);
 	if (brtn) {
 		printf("width : %d , height : %d\n", *width, *height);
-		printf("alpha : %s\n", hasAlpha ? "Yes" : "No");
+		printf("alpha : %s\n", hasAlpha == 1 ? "Yes" : "No");
 	}
 	
-	return brtn ? 1 : 0;
+	return brtn;
 }

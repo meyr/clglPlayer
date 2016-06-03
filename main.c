@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	char filename[32] = "logo.png";
 	unsigned char *image, crtn;
 	int width, height;
-	bool brtn, hasAlpha;
+	char brtn, hasAlpha;
 
 	/* read image file */
 	if (argc >= 2)
@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	brtn = loadPngImage(filename, &width, &height, &hasAlpha, &image);
 	if (brtn) {
 		printf("width : %d , height : %d\n", width, height);
-		printf("alpha : %s\n", hasAlpha ? "Yes" : "No");
+		printf("alpha : %s\n", hasAlpha == 1? "Yes" : "No");
 	}
 
 	/* openGL */
