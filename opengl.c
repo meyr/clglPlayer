@@ -116,7 +116,7 @@ void showTitle(float fps)
 	char strfps[48];
 
 	sprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
-			selectSource == 0 ? "source" : "result", fps);
+			selectSource ? "source" : "result", fps);
 	glutSetWindowTitle(strfps);
 
 }
@@ -321,7 +321,7 @@ void createGLTexture( GLuint* tex_name)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// buffer data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
