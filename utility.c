@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "utility.h"
 
 #ifdef _WIN32
 #	include <Windows.h>
@@ -70,7 +71,7 @@ unsigned char loadBMP(const char * imagepath,unsigned int *width,unsigned int *h
 	// Actual RGB data
 
 	// Open the file
-	file = fopen(imagepath,"rb");
+	myfopen(file, imagepath,"rb");
 	if (!file) {
 		printf("%s could not be opened.\n", imagepath); 
 		getchar(); 

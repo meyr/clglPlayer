@@ -4,6 +4,7 @@
 #include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"
+#include "utility.h"
 
 cl_uint numDevices;
 cl_device_id *devices;
@@ -22,7 +23,7 @@ static char *file_contents(const char *filename, int *length)
 	FILE *f;
 	void *buffer;
 	
-	f = fopen(filename, "r");
+	myfopen(f, filename, "r");
 	if (!f) {
 	    fprintf(stderr, "Unable to open %s for reading\n", filename);
 	    return NULL;

@@ -2,7 +2,6 @@
 #include <GL/glut.h>
 #include <GL/freeglut.h>
 #include <CL/cl_gl.h>
-#include "opengl.h"
 #include "opencl.h"
 #include "shader.h"
 #include "utility.h"

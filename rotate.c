@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "opencl.h"
-#include "opengl.h"
 
 int gl_image_id;
 
