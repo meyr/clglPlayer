@@ -3,8 +3,8 @@
 #ifdef _WIN32
 #	define myfopen(pfile, path, mode) \
 		fopen_s(&pfile, path, mode)
-#	define mysprintf(buffer, format, args...) \
-		sprintf_s(buffer, format, ## args)
+#	define mysprintf(buffer, format, ...) \
+		sprintf_s(buffer, format, ##__VA_ARGS__)
 #	define mystrcpy(dest, src) \
 		strcpy_s(dest, sizeof dest, src)
 #else
