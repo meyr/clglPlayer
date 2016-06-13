@@ -114,7 +114,7 @@ void showTitle(float fps)
 {
 	char strfps[48];
 
-	sprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
+	mysprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
 			selectSource ? "source" : "result", fps);
 	glutSetWindowTitle(strfps);
 

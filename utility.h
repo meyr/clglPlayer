@@ -1,13 +1,21 @@
 #ifndef __UTILITY_H
 #define __UTILITY_H
 #ifdef _WIN32
-#define myfopen(pfile, path, mode) \
-	fopen_s(&pfile, path, mode)
+#	define myfopen(pfile, path, mode) \
+		fopen_s(&pfile, path, mode)
+#	define mysprintf(buffer, format, args...) \
+		sprintf_s(buffer, format, ## args)
+#	define mystrcpy(dest, src) \
+		strcpy_s(dest, sizeof dest, src)
 #else
-#define myfopen(pfile, path, mode) \
-	do { \
-		pfile = fopen(path, mode);\
-	} while(0)
+#	define myfopen(pfile, path, mode) \
+		do { \
+			pfile = fopen(path, mode);\
+		} while(0)
+#	define mysprintf(buffer, format, args...) \
+		sprintf(buffer, format, ##args)
+#	define mystrcpy(dest, src) \
+		strcpy(dest, src)
 #endif
 
 #ifdef  __cplusplus

@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
 	/* read image file */
 	if (argc >= 2)
-		strcpy(filename,argv[1]);
+		mystrcpy(filename,argv[1]);
 
 	printf("open file %s\n",filename);
 	brtn = loadBMP(filename, &width, &height, &image); 
