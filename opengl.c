@@ -1,12 +1,11 @@
 #include <stdio.h>
-#include <stdbool.h>
-#include <GL/glut.h>
-#include <GL/freeglut.h>
+//#include <GL/glut.h>
 #include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"
 #include "shader.h"
 #include "utility.h"
+
 
 GLuint pbo_source;
 GLuint pbo_dest;
@@ -19,7 +18,7 @@ static int img_width;
 static int img_height;
 static unsigned char *the_image;
 static const char titleName[] = "auo clgl player";
-static bool selectSource;
+static char selectSource;
 
 const GLfloat g_vertex_data[] = { 
 	-1.0f, -1.0f, 0.0f,
@@ -83,29 +82,23 @@ void pushImage(void)
 
 void processImage(void)
 {
-	// download texture from PBO
+	/* download texture from CL buffer */
 	if (selectSource)
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
 	else
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
-	//glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
+
 	glBindTexture(GL_TEXTURE_2D, tex_screen);
+	/* bmp pixel format is BGR */
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
 	                img_width, img_height, 
-	                GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
-	//glGenerateMipmap(GL_TEXTURE_2D);
+	                GL_BGR, GL_UNSIGNED_BYTE, NULL);
 
 	/* bind our texture in texture unit 0 */
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, tex_screen);
+
 	/* set our texture sampler to user texture unit 0 */
 	glUniform1i(TextureID, 0);
-
 
 }
 
@@ -113,7 +106,7 @@ void showTitle(float fps)
 {
 	char strfps[48];
 
-	sprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
+	mysprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
 			selectSource ? "source" : "result", fps);
 	glutSetWindowTitle(strfps);
 
@@ -155,7 +148,6 @@ void idle(void)
 
 void exit_gl(void)
 {
-	printf("%s\n", __func__);
 	glUseProgram(0);
 	glDeleteProgram(programID);
 	glDeleteBuffers(1, &vertexbuffer);
@@ -168,12 +160,12 @@ void exit_gl(void)
 
 void appKeyboard(unsigned char key, int x, int y)
 {
-	static bool fullScreen = false;
+	static char fullScreen = 0;
 	//this way we can exit the program cleanly
 	switch(key) {
 		case 'f':
 		case 'F':
-			fullScreen ^= true;
+			fullScreen = (fullScreen == 0 ? 1 : 0);
 			if (fullScreen)
 				glutFullScreen();
 			else {
@@ -186,7 +178,7 @@ void appKeyboard(unsigned char key, int x, int y)
 		 	break;
 		case 's':
 		case 'S':
-			selectSource ^= true;	
+			selectSource = (selectSource == 0 ? 1 : 0);	
 			break;
 		case 'Q':   
 		case 'q': 
@@ -225,7 +217,11 @@ void init_gl(int argc, char** argv)
 	glutReshapeFunc(appReshape);
 	//glutMouseFunc(appMouse);
 	//glutMotionFunc(appMotion);
-
+	
+	/* initial glew lib */
+#ifdef _WIN32
+	glewInit();
+#endif
 	/* load shader */
 	/* Create and compile our GLSL program from the shaders */
 	programID = LoadShaders("opengl.vert", "opengl.frag");
@@ -320,7 +316,7 @@ void createGLTexture( GLuint* tex_name)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// buffer data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

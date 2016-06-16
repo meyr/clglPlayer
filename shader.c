@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <GL/glut.h>
+#include "utility.h"
+#include "opengl.h"
 
-static GLchar* ReadShader( const char* filename )
+static GLubyte* ReadShader( const char* filename )
 {
 	int len;
 	FILE *infile;
-	GLchar *source;
+	GLubyte *source;
 
-	infile = fopen(filename, "rb");
-	
+	myfopen(infile, filename, "rb");
 	if (!infile) {
 		printf("unable to open file %s\n", filename);
 		return NULL;
