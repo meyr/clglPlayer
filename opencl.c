@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <CL/cl.h>
-#include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"
 #include "utility.h"
@@ -234,9 +232,16 @@ void init_cl(void)
 	
 	//create the context
 	properties[0] = CL_GL_CONTEXT_KHR;
+#ifdef _WIN32
+	properties[1] = (cl_context_properties)wglGetCurrentContext();
+	properties[2] = CL_WGL_HDC_KHR;
+	properties[3] = (cl_context_properties)wglGetCurrentDC();
+#else
 	properties[1] = (cl_context_properties)glXGetCurrentContext();
 	properties[2] = CL_GLX_DISPLAY_KHR;
 	properties[3] = (cl_context_properties)glXGetCurrentDisplay();
+#endif
+	
 	properties[4] = CL_CONTEXT_PLATFORM;
 	properties[5] = (cl_context_properties)platform;
 	properties[6] = 0;

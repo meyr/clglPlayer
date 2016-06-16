@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <GL/glut.h>
-#ifdef _WIN32
-#	include <GL/glext.h>
-#endif
 #include "utility.h"
+#include "opengl.h"
 
 static GLubyte* ReadShader( const char* filename )
 {

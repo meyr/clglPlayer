@@ -1,6 +1,10 @@
 #ifndef __OPENGL_H
 #define __OPENGL_H
-
+#ifdef _WIN32
+#	include <Windows.h>
+#	include <gl/glew.h>
+#endif
+#include <GL/freeglut.h>
 #ifdef  __cplusplus
 extern "C" {
 #endif

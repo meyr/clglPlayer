@@ -1,13 +1,11 @@
 #include <stdio.h>
-#include <GL/glut.h>
-#include <GL/freeglut.h>
+//#include <GL/glut.h>
 #include <CL/cl_gl.h>
+#include "opengl.h"
 #include "opencl.h"
 #include "shader.h"
 #include "utility.h"
-#ifdef _WIN32
-#include <GL/glext.h>
-#endif
+
 
 GLuint pbo_source;
 GLuint pbo_dest;
@@ -225,7 +223,11 @@ void init_gl(int argc, char** argv)
 	glutReshapeFunc(appReshape);
 	//glutMouseFunc(appMouse);
 	//glutMotionFunc(appMotion);
-
+	
+	/* initial glew lib */
+#ifdef _WIN32
+	glewInit();
+#endif
 	/* load shader */
 	/* Create and compile our GLSL program from the shaders */
 	programID = LoadShaders("opengl.vert", "opengl.frag");

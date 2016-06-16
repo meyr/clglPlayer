@@ -4,7 +4,7 @@
 #	define myfopen(pfile, path, mode) \
 		fopen_s(&pfile, path, mode)
 #	define mysprintf(buffer, format, ...) \
-		sprintf_s(buffer, format, ##__VA_ARGS__)
+		sprintf_s(buffer, sizeof buffer, format, ##__VA_ARGS__)
 #	define mystrcpy(dest, src) \
 		strcpy_s(dest, sizeof dest, src)
 #else
