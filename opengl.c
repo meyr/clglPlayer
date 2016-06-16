@@ -82,29 +82,23 @@ void pushImage(void)
 
 void processImage(void)
 {
-	// download texture from PBO
+	/* download texture from CL buffer */
 	if (selectSource)
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
 	else
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
-	//glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
+
 	glBindTexture(GL_TEXTURE_2D, tex_screen);
+	/* bmp pixel format is BGR */
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
 	                img_width, img_height, 
-	                GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
-	//glGenerateMipmap(GL_TEXTURE_2D);
+	                GL_BGR, GL_UNSIGNED_BYTE, NULL);
 
 	/* bind our texture in texture unit 0 */
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, tex_screen);
+
 	/* set our texture sampler to user texture unit 0 */
 	glUniform1i(TextureID, 0);
-
 
 }
 
