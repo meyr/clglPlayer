@@ -207,6 +207,9 @@ void init_cl(void)
 	cl_context_properties properties[7];
 	int ext_size = 1024;
 	char* ext_string;
+	cl_ulong buf_ulong;
+	size_t workitem_dims;
+	size_t workitem_size[3];
 
 		     
 	printf("Initialize OpenCL object and context\n");
@@ -254,12 +257,30 @@ void init_cl(void)
 	err = clGetDeviceInfo(devices[0], CL_DEVICE_EXTENSIONS, ext_size, ext_string, NULL);
 	checkError("clGetDeviceInfo", err);
 	//printf("%s\n", ext_string);
+	free(ext_string);
 	// Search for GL support in extension string (space delimited)
 	//supported = IsExtensionSupported(CL_GL_SHARING_EXT, ext_string, ext_size);
 	//if(supported)
 	// 	printf("Found GL Sharing Support!\n");
 
+	/* show some information about GPU */
+	err = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS,
+			sizeof(buf_ulong), &buf_ulong, NULL);
+	checkError("clGetDeviceInfo", err);
+	printf("device max work item dimensions:\t%llu\n", (unsigned long long)buf_ulong);
 
+	err = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS,
+			sizeof(workitem_dims), &workitem_dims, NULL);
+	checkError("clGetDeviceInfo", err);
+	printf("device max work item dimensions:\t%u\n", (unsigned int) workitem_dims);
+
+	err = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_ITEM_SIZES,
+			sizeof(workitem_size), &workitem_size, NULL);
+	checkError("clGetDeviceInfo", err);
+	printf("device max work item sizes:\t%u / %u / %u \n", 
+			(unsigned int)workitem_size[0], 
+			(unsigned int)workitem_size[1], 
+			(unsigned int)workitem_size[2]);
 
 	//for right now we just use the first available device
 	//later you may have criteria (such as support for different extensions)

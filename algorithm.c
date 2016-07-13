@@ -21,7 +21,17 @@ void runKernel(void)
 
 	cl_int err;
 	cl_event event;
-	size_t num = 1920*1080*3;
+	size_t global_item_size = 1920 * 1080;
+	size_t global_item_size2[] = {1920, 1080};
+	/* local item size :    
+	 * the number of work item 
+	 * in a work group in each diamension
+	 *			
+	 * the only constraint for the global_work_size is 
+	 * that it must be a multiple of the local_work_size (for each dimension).
+	 */
+	size_t local_item_size = 64;	
+	size_t local_item_size2[] = {16, 8};
 	//this will update our system by calculating new velocity and updating the positions of our particles
 	//Make sure OpenGL is done using our VBOs
 	glFinish();
@@ -32,7 +42,18 @@ void runKernel(void)
 	clFinish(command_queue);
 	
 	//execute the kernel
-    	err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &num, NULL, 0, NULL, &event);
+	//err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,
+	//		&global_item_size, 
+	//		//&local_item_size,
+	//		NULL,
+	//		0, NULL, &event);
+	
+    	err = clEnqueueNDRangeKernel(command_queue, kernel, 2, NULL, 
+			global_item_size2, 
+			local_item_size2, 
+			//NULL, 
+			0, NULL, &event);
+
 	checkError("clEnqueueNDRangeKernel", err);
 	clFinish(command_queue);
 	
