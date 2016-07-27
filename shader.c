@@ -4,7 +4,7 @@
 #include "utility.h"
 #include "opengl.h"
 
-static GLubyte* ReadShader( const char* filename )
+static GLubyte* ReadShader(const char* filename)
 {
 	int len;
 	FILE *infile;
@@ -15,22 +15,22 @@ static GLubyte* ReadShader( const char* filename )
 		printf("unable to open file %s\n", filename);
 		return NULL;
 	}
-	
-	fseek( infile, 0, SEEK_END );
-	len = ftell( infile );
-	fseek( infile, 0, SEEK_SET );
-	
+
+	fseek(infile, 0, SEEK_END);
+	len = ftell(infile);
+	fseek(infile, 0, SEEK_SET);
+
 	source = malloc(len + 1);
-	
-	fread( source, 1, len, infile );
-	fclose( infile );
-	
+
+	fread(source, 1, len, infile);
+	fclose(infile);
+
 	source[len] = 0;
-	
+
 	return source;
 }
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path)
+GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path)
 {
 
 	GLint Result = GL_FALSE;
@@ -57,7 +57,7 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	// Check Vertex Shader
 	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 1 ){
+	if (InfoLogLength > 1) {
 		ErrorMessage = malloc(InfoLogLength + 1);
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, ErrorMessage);
 		printf("%s\n", ErrorMessage);
@@ -72,7 +72,7 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	// Check Fragment Shader
 	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 1 ){
+	if (InfoLogLength > 1) {
 		ErrorMessage = malloc(InfoLogLength + 1);
 		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, ErrorMessage);
 		printf("%s\n", ErrorMessage);
@@ -91,17 +91,17 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	// Check the program
 	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
 	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 ){
+	if (InfoLogLength > 0) {
 		ErrorMessage = malloc(InfoLogLength + 1);
 		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, ErrorMessage);
 		printf("%s\n", ErrorMessage);
 		free(ErrorMessage);
 	}
 
-	
+
 	glDetachShader(ProgramID, VertexShaderID);
 	glDetachShader(ProgramID, FragmentShaderID);
-	
+
 	glDeleteShader(VertexShaderID);
 	glDeleteShader(FragmentShaderID);
 

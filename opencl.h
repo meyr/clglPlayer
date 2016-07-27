@@ -18,6 +18,7 @@ void runKernel(void);
 void createCLbufferFromGL(void);
 
 extern cl_kernel kernel;
+extern cl_kernel kernel_max;
 extern cl_program program;
 extern cl_context context;
 extern cl_command_queue command_queue;

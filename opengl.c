@@ -5,6 +5,7 @@
 #include "opencl.h"
 #include "shader.h"
 #include "utility.h"
+#include "decode.h"
 
 
 GLuint pbo_source;
@@ -20,22 +21,22 @@ static unsigned char *the_image;
 static const char titleName[] = "auo clgl player";
 static char selectSource;
 
-const GLfloat g_vertex_data[] = { 
+const GLfloat g_vertex_data[] = {
 	-1.0f, -1.0f, 0.0f,
-	 1.0f, -1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
 	-1.0f,  1.0f, 0.0f,
-	 1.0f, -1.0f, 0.0f,
-	 1.0f,  1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	1.0f,  1.0f, 0.0f,
 	-1.0f,  1.0f, 0.0f,
 };
 
-const GLfloat g_uv_data[] = { 
-	0.00f, 0.00f, 
-	1.00f, 0.00f, 
-	0.00f, 1.00f, 
-	1.00f, 0.00f, 
-	1.00f, 1.00f, 
-	0.00f, 1.00f, 
+const GLfloat g_uv_data[] = {
+	0.00f, 0.00f,
+	1.00f, 0.00f,
+	0.00f, 1.00f,
+	1.00f, 0.00f,
+	1.00f, 1.00f,
+	0.00f, 1.00f,
 };
 
 void setImageAttr(int width, int height, unsigned char *image)
@@ -90,9 +91,10 @@ void processImage(void)
 
 	glBindTexture(GL_TEXTURE_2D, tex_screen);
 	/* bmp pixel format is BGR */
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 
-	                img_width, img_height, 
-	                GL_BGR, GL_UNSIGNED_BYTE, NULL);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+	                img_width, img_height,
+	                //GL_BGR, GL_UNSIGNED_BYTE, NULL);
+	                GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 	/* bind our texture in texture unit 0 */
 	glActiveTexture(GL_TEXTURE0);
@@ -107,7 +109,7 @@ void showTitle(float fps)
 	char strfps[48];
 
 	mysprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
-			selectSource ? "source" : "result", fps);
+	          selectSource ? "source" : "result", fps);
 	glutSetWindowTitle(strfps);
 
 }
@@ -115,6 +117,11 @@ void showTitle(float fps)
 void appRender(void)
 {
 	double pTime0, pTime1, pTime2;
+	// grab frame
+	decode_grab(&the_image);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
+	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, img_width * img_height * 3, the_image);
+
 	//shrDeltaT(0);
 	runKernel();
 	//pTime0 = shrDeltaT(0);
@@ -123,8 +130,8 @@ void appRender(void)
 	//pTime1 = shrDeltaT(1);
 	//pTime2 = shrDeltaT(2);
 	//printf("runkernel : %.4f, processImage : %.6f, appRender : %.4f\n", pTime0, pTime1, pTime2);
-    	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    	glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glDrawArrays(GL_TRIANGLES, 0, 2 * 3);
 
@@ -136,9 +143,9 @@ void appRender(void)
 
 void timerCB(int ms)
 {
-    //this makes sure the appRender function is called every ms miliseconds
-    glutTimerFunc(ms, timerCB, ms);
-    glutPostRedisplay();
+	//this makes sure the appRender function is called every ms miliseconds
+	glutTimerFunc(ms, timerCB, ms);
+	glutPostRedisplay();
 }
 
 void idle(void)
@@ -162,29 +169,30 @@ void appKeyboard(unsigned char key, int x, int y)
 {
 	static char fullScreen = 0;
 	//this way we can exit the program cleanly
-	switch(key) {
-		case 'f':
-		case 'F':
-			fullScreen = (fullScreen == 0 ? 1 : 0);
-			if (fullScreen)
-				glutFullScreen();
-			else {
-				glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH)/2,
-						  glutGet(GLUT_SCREEN_HEIGHT)/2);
-				glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH)/4,
-						   glutGet(GLUT_SCREEN_HEIGHT)/4);
-			}
-			glutPostRedisplay();
-		 	break;
-		case 's':
-		case 'S':
-			selectSource = (selectSource == 0 ? 1 : 0);	
-			break;
-		case 'Q':   
-		case 'q': 
-			glutLeaveMainLoop();
-			break;
-		default : break;
+	switch (key) {
+	case 'f':
+	case 'F':
+		fullScreen = (fullScreen == 0 ? 1 : 0);
+		if (fullScreen)
+			glutFullScreen();
+		else {
+			glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH) / 2,
+			                  glutGet(GLUT_SCREEN_HEIGHT) / 2);
+			glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH) / 4,
+			                   glutGet(GLUT_SCREEN_HEIGHT) / 4);
+		}
+		glutPostRedisplay();
+		break;
+	case 's':
+	case 'S':
+		selectSource = (selectSource == 0 ? 1 : 0);
+		break;
+	case 'Q':
+	case 'q':
+		glutLeaveMainLoop();
+		break;
+	default :
+		break;
 	}
 }
 
@@ -193,7 +201,7 @@ void appReshape(GLsizei w, GLsizei h)
 	//GLsizei vsize;
 	//
 	//vsize = (w < h) ? w : h;
-        glViewport(0,0,w,h);
+	glViewport(0, 0, w, h);
 }
 
 void init_gl(int argc, char** argv)
@@ -201,9 +209,9 @@ void init_gl(int argc, char** argv)
 	int i;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize(glutGet(GLUT_SCREEN_WIDTH)/2, glutGet(GLUT_SCREEN_HEIGHT)/2);
-	glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH)/4, 
-				glutGet(GLUT_SCREEN_HEIGHT)/4);
+	glutInitWindowSize(glutGet(GLUT_SCREEN_WIDTH) / 2, glutGet(GLUT_SCREEN_HEIGHT) / 2);
+	glutInitWindowPosition(glutGet(GLUT_SCREEN_WIDTH) / 4,
+	                       glutGet(GLUT_SCREEN_HEIGHT) / 4);
 
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	glutWindowHandle = glutCreateWindow(titleName);
@@ -217,7 +225,7 @@ void init_gl(int argc, char** argv)
 	glutReshapeFunc(appReshape);
 	//glutMouseFunc(appMouse);
 	//glutMotionFunc(appMotion);
-	
+
 	/* initial glew lib */
 #ifdef _WIN32
 	glewInit();
@@ -247,24 +255,24 @@ void init_gl(int argc, char** argv)
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glVertexAttribPointer(
-		0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		(void*)0            // array buffer offset
+	    0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+	    3,                  // size
+	    GL_FLOAT,           // type
+	    GL_FALSE,           // normalized?
+	    0,                  // stride
+	    (void*)0            // array buffer offset
 	);
-	
+
 	// 2nd attribute buffer : UVs
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 	glVertexAttribPointer(
-		1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-		2,                                // size : U+V => 2
-		GL_FLOAT,                         // type
-		GL_FALSE,                         // normalized?
-		0,                                // stride
-		(void*)0                          // array buffer offset
+	    1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+	    2,                                // size : U+V => 2
+	    GL_FLOAT,                         // type
+	    GL_FALSE,                         // normalized?
+	    0,                                // stride
+	    (void*)0                          // array buffer offset
 	);
 
 }
@@ -280,30 +288,18 @@ void createGLBuffers(GLuint* pbo)
 	num_texels = img_width * img_height;
 	num_values = num_texels * 3;
 	size_tex_data = sizeof(GLubyte) * num_values;
-	
+
 	// create buffer object
 	glGenBuffers(1, pbo);
 	glBindBuffer(GL_ARRAY_BUFFER, *pbo);
-	
+
 	// buffer data
 	glBufferData(GL_ARRAY_BUFFER, size_tex_data, NULL, GL_DYNAMIC_DRAW);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void createGLRenderBuffers(GLuint *_index)
-{
-	// create buffer object
-	glGenRenderbuffers(1, _index);
-	glBindRenderbuffer(GL_RENDERBUFFER, *_index);
-	
-	// buffer data
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, img_width, img_height);
-	
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-}
-
-void createGLTexture( GLuint* tex_name)
+void createGLTexture(GLuint* tex_name)
 {
 	// create a texture
 	glGenTextures(1, tex_name);
@@ -316,7 +312,8 @@ void createGLTexture( GLuint* tex_name)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// buffer data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

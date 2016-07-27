@@ -3,15 +3,24 @@
 #include "opengl.h"
 
 int gl_image_id;
+cl_mem mobj = NULL;
 
 void transferParam(void)
 {
 	cl_int err;
-	
+
 	err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &cl_pbos[0]);
 	checkError("clSetKernelArg0", err);
 	err  = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &cl_pbos[1]);
 	checkError("clSetKernelArg1", err);
+
+
+	mobj = clCreateBuffer(context, CL_MEM_READ_WRITE, 4 * 4 * sizeof(char), NULL, &err);
+	checkError("clCreateBuffer", err);
+	err  = clSetKernelArg(kernel_max, 0, sizeof(cl_mem), (void *)&cl_pbos[0]);
+	checkError("clSetKernelArg max 0", err);
+	err  = clSetKernelArg(kernel_max, 1, sizeof(cl_mem), (void *)&mobj);
+	checkError("clSetKernelArg max 1", err);
 
 	clFinish(command_queue);
 }
@@ -21,17 +30,20 @@ void runKernel(void)
 
 	cl_int err;
 	cl_event event;
+	size_t global_item_size_max = 16;
 	size_t global_item_size = 1920 * 1080;
 	size_t global_item_size2[] = {1920, 1080};
-	/* local item size :    
-	 * the number of work item 
+	char *output;
+	int i;
+	/* local item size :
+	 * the number of work item
 	 * in a work group in each diamension
-	 *			
-	 * the only constraint for the global_work_size is 
+	 *
+	 * the only constraint for the global_work_size is
 	 * that it must be a multiple of the local_work_size (for each dimension).
 	 */
-	size_t local_item_size = 64;	
-	size_t local_item_size2[] = {16, 8};
+	size_t local_item_size = 64;
+	size_t local_item_size2[] = {64, 8};
 	//this will update our system by calculating new velocity and updating the positions of our particles
 	//Make sure OpenGL is done using our VBOs
 	glFinish();
@@ -40,26 +52,42 @@ void runKernel(void)
 	err = clEnqueueAcquireGLObjects(command_queue, 2, cl_pbos, 0, NULL, NULL);
 	checkError("acquireGLObjects", err);
 	clFinish(command_queue);
-	
+
 	//execute the kernel
 	//err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,
-	//		&global_item_size, 
+	//		&global_item_size,
 	//		//&local_item_size,
 	//		NULL,
 	//		0, NULL, &event);
-	
-    	err = clEnqueueNDRangeKernel(command_queue, kernel, 2, NULL, 
-			global_item_size2, 
-			local_item_size2, 
-			//NULL, 
-			0, NULL, &event);
+
+	err = clEnqueueNDRangeKernel(command_queue, kernel, 2, NULL,
+	                             global_item_size2,
+	                             local_item_size2,
+	                             //NULL,
+	                             0, NULL, &event);
 
 	checkError("clEnqueueNDRangeKernel", err);
-	clFinish(command_queue);
-	
+	err = clEnqueueNDRangeKernel(command_queue, kernel_max, 1, NULL,
+	                             &global_item_size_max,
+	                             //&local_item_size,
+	                             NULL,
+	                             0, NULL, &event);
+	checkError("clEnqueueNDRangeKernel max", err);
+
+
+	///* Transfer result to host */
+	output = malloc(4 * 4);
+	err = clEnqueueReadBuffer(command_queue, mobj, CL_TRUE, 0, 4 * 4 * sizeof(char), output, 0, NULL, NULL);
+	checkError("clEnqueueReadBuffer", err);
+
+	free(output);
+	//clFinish(command_queue);
+
+
 	//Release the VBOs so OpenGL can play with them
 	clEnqueueReleaseGLObjects(command_queue, 2, cl_pbos, 0, NULL, NULL);
 	checkError("releaseGLObjects", err);
+	clFlush(command_queue);
 	clFinish(command_queue);
 }
 
