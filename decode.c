@@ -13,7 +13,6 @@
 // Initalizing these to NULL prevents segfaults!
 AVFormatContext   *pFormatCtx = NULL;
 int               i, videoStream;
-AVCodecContext    *pCodecCtxOrig = NULL;
 AVCodecContext    *pCodecCtx = NULL;
 AVCodec           *pCodec = NULL;
 AVFrame           *pFrame = NULL;
@@ -53,20 +52,20 @@ int decode_init(char *filename)
 		return -1; // Didn't find a video stream
 
 	// Get a pointer to the codec context for the video stream
-	pCodecCtxOrig = pFormatCtx->streams[videoStream]->codec;
+	pCodecCtx = pFormatCtx->streams[videoStream]->codec;
 	// Find the decoder for the video stream
-	pCodec = avcodec_find_decoder(pCodecCtxOrig->codec_id);
+	pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
 	if (pCodec == NULL) {
 		fprintf(stderr, "Unsupported codec!\n");
 		return -1; // Codec not found
 	}
 	// Copy context
-	pCodecCtx = avcodec_alloc_context3(pCodec);
-	if (avcodec_copy_context(pCodecCtx, pCodecCtxOrig) != 0) {
-		fprintf(stderr, "Couldn't copy codec context");
-		return -1; // Error copying codec context
-	}
-
+	//pCodecCtx = avcodec_alloc_context3(pCodec);
+	//if (avcodec_copy_context(pCodecCtx, pCodecCtx) != 0) {
+	//	fprintf(stderr, "Couldn't copy codec context");
+	//	return -1; // Error copying codec context
+	//}
+	//
 	// Open codec
 	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0)
 		return -1; // Could not open codec
@@ -146,7 +145,6 @@ void decode_close(void)
 
 	// Close the codecs
 	avcodec_close(pCodecCtx);
-	avcodec_close(pCodecCtxOrig);
 
 	// Close the video file
 	avformat_close_input(&pFormatCtx);
