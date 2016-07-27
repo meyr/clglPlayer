@@ -31,12 +31,12 @@ const GLfloat g_vertex_data[] = {
 };
 
 const GLfloat g_uv_data[] = {
-	0.00f, 0.00f,
-	1.00f, 0.00f,
 	0.00f, 1.00f,
-	1.00f, 0.00f,
 	1.00f, 1.00f,
-	0.00f, 1.00f,
+	0.00f, 0.00f,
+	1.00f, 1.00f,
+	1.00f, 0.00f,
+	0.00f, 0.00f,
 };
 
 void setImageAttr(int width, int height, unsigned char *image)
@@ -170,6 +170,15 @@ void appKeyboard(unsigned char key, int x, int y)
 	static char fullScreen = 0;
 	//this way we can exit the program cleanly
 	switch (key) {
+	case 27:
+		if(fullScreen){
+			glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH) / 2,
+			                  glutGet(GLUT_SCREEN_HEIGHT) / 2);
+			glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH) / 4,
+			                   glutGet(GLUT_SCREEN_HEIGHT) / 4);
+			fullScreen = 0;
+		}
+		break;
 	case 'f':
 	case 'F':
 		fullScreen = (fullScreen == 0 ? 1 : 0);
