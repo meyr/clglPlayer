@@ -1,12 +1,10 @@
 #include <stdio.h>
-//#include <GL/glut.h>
 #include <CL/cl_gl.h>
 #include "opengl.h"
 #include "opencl.h"
 #include "shader.h"
 #include "utility.h"
 #include "decode.h"
-
 
 GLuint pbo_source;
 GLuint pbo_dest;
@@ -15,6 +13,8 @@ GLuint programID;
 GLuint TextureID;
 GLuint vertexbuffer, uvbuffer;
 static int glutWindowHandle = 0;
+static int source_width;
+static int source_height;
 static int texture_width;
 static int texture_height;
 static unsigned char *the_image;
@@ -280,28 +280,39 @@ void init_gl(int argc, char** argv)
 }
 
 
-void createGLBuffers(GLuint* pbo, int width, int height)
+void createGLBuffers(GLuint* pbo, int width, int height,char property)
 {
 	unsigned int size_tex_data;
 	unsigned int num_texels;
 	unsigned int num_values;
 
-	// set up data parameter
+	/* set up data parameter */
 	num_texels = width * height;
 	num_values = num_texels * 3;
 	size_tex_data = sizeof(GLubyte) * num_values;
 
-	// create buffer object
+	/* create buffer object */
 	glGenBuffers(1, pbo);
 	glBindBuffer(GL_ARRAY_BUFFER, *pbo);
 
-	// buffer data
+	/* buffer data */
 	glBufferData(GL_ARRAY_BUFFER, size_tex_data, NULL, GL_DYNAMIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	/* save width/height */
+	if(property == GL_BUFFER_SORC){
+		source_width = width;
+		source_height = height;
+	}
+
+	if(property == GL_BUFFER_DEST){
+		texture_width = width;
+		texture_height = height;
+	}
 }
 
-void createGLTexture(GLuint* tex_name, int width, int height)
+void createGLTexture(GLuint* tex_name)
 {
 	// create a texture
 	glGenTextures(1, tex_name);
@@ -315,11 +326,9 @@ void createGLTexture(GLuint* tex_name, int width, int height)
 
 	// buffer data
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	texture_width = width;
-	texture_height = height;
 }
 
 
