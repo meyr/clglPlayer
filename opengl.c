@@ -113,7 +113,7 @@ void appRender(void)
 	// grab frame
 	decode_grab(&the_image);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
-	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, texture_width * texture_height * 3, the_image);
+	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, source_width * source_height * 3, the_image);
 
 	//shrDeltaT(0);
 	runKernel();

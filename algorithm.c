@@ -2,8 +2,15 @@
 #include "opencl.h"
 #include "opengl.h"
 
-int gl_image_id;
 cl_mem mobj = NULL;
+static int cl_width;
+static int cl_height;
+
+void setKernelRange(int width, int height)
+{
+	cl_width = width;
+	cl_height = height;
+}
 
 void transferParam(void)
 {
@@ -12,6 +19,8 @@ void transferParam(void)
 	err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &cl_pbos[0]);
 	checkError("clSetKernelArg0", err);
 	err  = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &cl_pbos[1]);
+	checkError("clSetKernelArg1", err);
+	err  = clSetKernelArg(kernel, 2, sizeof(cl_width), (void *) &cl_width);
 	checkError("clSetKernelArg1", err);
 
 
@@ -31,8 +40,8 @@ void runKernel(void)
 	cl_int err;
 	cl_event event;
 	size_t global_item_size_max = 16;
-	size_t global_item_size = 1920 * 1080;
-	size_t global_item_size2[] = {1920, 1080};
+	size_t global_item_size = cl_width * cl_height;
+	size_t global_item_size2[] = {cl_width, cl_height};
 	char *output;
 	int i;
 	/* local item size :

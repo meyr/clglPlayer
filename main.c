@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	init_cl();
 	clloadProgram("./algorithm.cl");
 	createCLBufferFromGL();
+	setKernelRange(width, height);
 	transferParam();
 
 	glutMainLoop();
