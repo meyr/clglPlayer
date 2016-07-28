@@ -24,7 +24,7 @@ uint8_t           *buffer = NULL;
 struct SwsContext *sws_ctx = NULL;
 
 
-int decode_init(char *filename)
+int decode_init(char *filename, int *width, int *height)
 {
 
 	// Register all formats and codecs
@@ -59,13 +59,6 @@ int decode_init(char *filename)
 		fprintf(stderr, "Unsupported codec!\n");
 		return -1; // Codec not found
 	}
-	// Copy context
-	//pCodecCtx = avcodec_alloc_context3(pCodec);
-	//if (avcodec_copy_context(pCodecCtx, pCodecCtx) != 0) {
-	//	fprintf(stderr, "Couldn't copy codec context");
-	//	return -1; // Error copying codec context
-	//}
-	//
 	// Open codec
 	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0)
 		return -1; // Could not open codec
@@ -82,7 +75,8 @@ int decode_init(char *filename)
 	numBytes = avpicture_get_size(AV_PIX_FMT_RGB24, pCodecCtx->width,
 	                              pCodecCtx->height);
 	buffer = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
-
+	*width = pCodecCtx->width;
+	*height = pCodecCtx->height;
 	// Assign appropriate parts of buffer to image planes in pFrameRGB
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 	// of AVPicture

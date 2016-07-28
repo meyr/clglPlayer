@@ -15,8 +15,8 @@ GLuint programID;
 GLuint TextureID;
 GLuint vertexbuffer, uvbuffer;
 static int glutWindowHandle = 0;
-static int img_width;
-static int img_height;
+static int texture_width;
+static int texture_height;
 static unsigned char *the_image;
 static const char titleName[] = "auo clgl player";
 static char selectSource;
@@ -38,13 +38,6 @@ const GLfloat g_uv_data[] = {
 	1.00f, 0.00f,
 	0.00f, 0.00f,
 };
-
-void setImageAttr(int width, int height, unsigned char *image)
-{
-	img_width = width;
-	img_height = height;
-	the_image = image;
-}
 
 float caculateFPS(void)
 {
@@ -73,11 +66,11 @@ float caculateFPS(void)
 	return fps;
 }
 
-void pushImage(void)
+void pushImage(int width, int height, char *image)
 {
 	// activate destination buffer
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
-	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, img_width * img_height * 3, the_image);
+	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, width * height * 3, image);
 
 }
 
@@ -92,7 +85,7 @@ void processImage(void)
 	glBindTexture(GL_TEXTURE_2D, tex_screen);
 	/* bmp pixel format is BGR */
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-	                img_width, img_height,
+	                texture_width, texture_height,
 	                //GL_BGR, GL_UNSIGNED_BYTE, NULL);
 	                GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
@@ -120,7 +113,7 @@ void appRender(void)
 	// grab frame
 	decode_grab(&the_image);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
-	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, img_width * img_height * 3, the_image);
+	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, texture_width * texture_height * 3, the_image);
 
 	//shrDeltaT(0);
 	runKernel();
@@ -287,14 +280,14 @@ void init_gl(int argc, char** argv)
 }
 
 
-void createGLBuffers(GLuint* pbo)
+void createGLBuffers(GLuint* pbo, int width, int height)
 {
 	unsigned int size_tex_data;
 	unsigned int num_texels;
 	unsigned int num_values;
 
 	// set up data parameter
-	num_texels = img_width * img_height;
+	num_texels = width * height;
 	num_values = num_texels * 3;
 	size_tex_data = sizeof(GLubyte) * num_values;
 
@@ -308,7 +301,7 @@ void createGLBuffers(GLuint* pbo)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void createGLTexture(GLuint* tex_name)
+void createGLTexture(GLuint* tex_name, int width, int height)
 {
 	// create a texture
 	glGenTextures(1, tex_name);
@@ -322,8 +315,11 @@ void createGLTexture(GLuint* tex_name)
 
 	// buffer data
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	texture_width = width;
+	texture_height = height;
 }
 
 

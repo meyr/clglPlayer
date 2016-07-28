@@ -15,24 +15,15 @@ int main(int argc, char *argv[])
 	unsigned int i;
 
 	/* read image file */
-	//if (argc >= 2)
-	//	mystrcpy(filename,argv[1]);
-
-	printf("open file %s\n", filename);
-	brtn = loadBMP(filename, &width, &height, &image);
-	if (brtn)
-		printf("width : %d , height : %d\n", width, height);
+	if (argc >= 2)
+		decode_init(argv[1], &width, &height);
 
 	/* openGL */
-	setImageAttr(width, height, image);
 	init_gl(argc, argv);
-	createGLBuffers(&pbo_source);
-	createGLBuffers(&pbo_dest);
+	createGLBuffers(&pbo_source, width, height);
+	createGLBuffers(&pbo_dest, width, height);
 	// create texture for blitting onto the screen
-	createGLTexture(&tex_screen);
-	if (argc >= 2)
-		decode_init(argv[1]);
-	pushImage();
+	createGLTexture(&tex_screen, width, height);
 
 
 	/* openCL */

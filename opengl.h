@@ -12,10 +12,10 @@ extern "C" {
 void init_gl(int argc, char** argv);
 void exit_gl(void);
 void setImageAttr(int width, int height, unsigned char *image);
-void createGLBuffers(unsigned int *pbo);
-void createGLTexture(unsigned int *tex_name);
+void createGLBuffers(unsigned int *pbo, int width, int height);
+void createGLTexture(unsigned int *tex_name, int width, int height);
 void createGLRenderBuffers(unsigned int *_index);
-void pushImage(void);
+void pushImage(int width, int height, char *image);
 
 extern unsigned int orign_texture;
 extern unsigned int modify_texture;
