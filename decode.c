@@ -105,7 +105,7 @@ int decode_init(char *filename)
 
 	return 0;
 }
-void decode_grab(uint8_t **pImage)
+void decode_grab(unsigned char **pImage)
 {
 	/* Read frames */
 	while (av_read_frame(pFormatCtx, &packet) >= 0) {
