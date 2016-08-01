@@ -25,10 +25,13 @@ extern cl_command_queue command_queue;
 extern cl_mem cl_pbos[2];
 
 #define checkError(func, err) \
-	do { \
-		if (err != CL_SUCCESS) \
-			printf(func ": %s\n", oclErrorString(err));\
-	} while(0)
+do { \
+if (err != CL_SUCCESS) { \
+	printf(func ": %s\n", oclErrorString(err)); \
+	fgetc(stdin); \
+	exit(0); \
+}\
+} while (0)
 
 #ifdef  __cplusplus
 }

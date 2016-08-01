@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
 	int width, height;
-
+	width = height = 0;
 	/* read image file */
 	if (argc >= 2)
 		decode_init(argv[1], &width, &height);
