@@ -7,6 +7,8 @@ SET(OPENCL_LIB OpenCL)
 if (UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb")
 	SET(OPENGL_LIB GL glut GLU)
+	add_custom_target(myCustomTarget
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/algorithm.cl .)
 endif (UNIX)
 if (WIN32)
 	# hader file search path
@@ -17,8 +19,14 @@ if (WIN32)
 	link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+	add_custom_target(myCustomTarget
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/algorithm.cl .
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/dll/* .
+		)
+
 endif(WIN32)
 ADD_EXECUTABLE(${EXEC} ${SRCS})
+add_dependencies(${EXEC} myCustomTarget)
 #ADD_DEFINITIONS(-DCL_SOURCE_DIR="${showImage_SOURCE_DIR}")
 #message("source path: ${showImage_SOURCE_DIR}\n")
 TARGET_LINK_LIBRARIES(${EXEC} ${OPENGL_LIB} ${OPENCL_LIB} ${CODEC_LIB}) 
