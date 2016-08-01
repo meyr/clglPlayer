@@ -349,12 +349,22 @@ void clloadProgram(const char* relative_path)
 	size_t program_length;
 	char *cSourceCL;
 	cl_int err;
+	char filepath[128];
 
-	printf("load the program : %s\n", relative_path);
+#ifdef _WIN32
+	char *cutoff = NULL;
+	GetModuleFileName(NULL, filepath, 128);
+	cutoff = strrchr(filepath, '\\');
+	*(cutoff + 1) = '\0';      //get rid of the +1 if you don't want the trailing \ character
+	strcat(filepath, relative_path);
+#else
+	strcpy(filepath, relative_path);
+#endif
+	printf("load the program : %s\n", filepath);
 
 	//file_contents is defined in util.cpp
 	//it loads the contents of the file at the given path
-	cSourceCL = file_contents(relative_path, &pl);
+	cSourceCL = file_contents(filepath, &pl);
 	//printf("file: %s\n", cSourceCL);
 	program_length = (size_t)pl;
 
