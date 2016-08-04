@@ -331,7 +331,8 @@ static void clbuildExecutable()
 	printf("BUILD LOG: \n %s", build_log);
 	free(build_log);
 
-	kernel = clCreateKernel(program, "algorithm", &err);
+	kernel = clCreateKernel(program, "getLeft", &err);
+	//kernel = clCreateKernel(program, "algorithm", &err);
 	checkError("clCreateKernel", err);
 	kernel_max = clCreateKernel(program, "findMaxValue", &err);
 	checkError("clCreateKernel max", err);

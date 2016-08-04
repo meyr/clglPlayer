@@ -5,6 +5,12 @@
 cl_mem mobj = NULL;
 static int cl_width;
 static int cl_height;
+static int image_width;
+
+void setImageWidth(int width)
+{
+	image_width = width;
+}
 
 void setKernelRange(int width, int height)
 {
@@ -20,7 +26,7 @@ void transferParam(void)
 	checkError("clSetKernelArg0", err);
 	err  = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &cl_pbos[1]);
 	checkError("clSetKernelArg1", err);
-	err  = clSetKernelArg(kernel, 2, sizeof(cl_width), (void *) &cl_width);
+	err  = clSetKernelArg(kernel, 2, sizeof(cl_width), (void *) &image_width);
 	checkError("clSetKernelArg1", err);
 
 

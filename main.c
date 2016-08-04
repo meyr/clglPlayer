@@ -16,16 +16,15 @@ int main(int argc, char *argv[])
 
 	/* openGL */
 	init_gl(argc, argv);
-	createGLBuffers(&pbo_source, width, height, GL_BUFFER_SORC);
-	createGLBuffers(&pbo_dest, width, height, GL_BUFFER_DEST);
-	/* create texture for blitting onto the screen */
-	createGLTexture(&tex_screen);
+	createGLBufTex(width, height, GL_BUFFER_SORC);
+	createGLBufTex(width/2, height, GL_BUFFER_DEST);
 
 	/* openCL */
 	init_cl();
 	clloadProgram("./algorithm.cl");
 	createCLBufferFromGL();
-	setKernelRange(width, height);
+	setImageWidth(width);
+	setKernelRange(width/2, height);
 	transferParam();
 
 	glutMainLoop();

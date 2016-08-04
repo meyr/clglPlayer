@@ -8,18 +8,20 @@
 
 GLuint pbo_source;
 GLuint pbo_dest;
-GLuint tex_screen;                          // (offscreen) render target
+GLuint tex_source;                          // (offscreen) render target
+GLuint tex_dest;                          // (offscreen) render target
 GLuint programID;
 GLuint TextureID;
 GLuint vertexbuffer, uvbuffer;
 static int glutWindowHandle = 0;
 static int source_width;
 static int source_height;
-static int texture_width;
-static int texture_height;
+static int dest_width;
+static int dest_height;
 static unsigned char *the_image;
 static const char titleName[] = "auo clgl player";
 static char selectSource;
+static char selectSourced;
 
 const GLfloat g_vertex_data[] = {
 	-1.0f, -1.0f, 0.0f,
@@ -76,13 +78,20 @@ void pushImage(int width, int height, char *image)
 
 void processImage(void)
 {
+	int texture_width, texture_height;
 	/* download texture from CL buffer */
-	if (selectSource)
+	if (selectSourced){
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_source);
-	else
+		glBindTexture(GL_TEXTURE_2D, tex_source);
+		texture_width = source_width;
+		texture_height = source_height;
+	}else{
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_dest);
+		glBindTexture(GL_TEXTURE_2D, tex_dest);
+		texture_width = dest_width;
+		texture_height = dest_height;
+	}
 
-	glBindTexture(GL_TEXTURE_2D, tex_screen);
 	/* bmp pixel format is BGR */
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
 	                texture_width, texture_height,
@@ -90,11 +99,16 @@ void processImage(void)
 	                GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 	/* bind our texture in texture unit 0 */
-	glActiveTexture(GL_TEXTURE0);
+	if (selectSourced)
+		glActiveTexture(GL_TEXTURE0);
+	else
+		glActiveTexture(GL_TEXTURE1);
 
 	/* set our texture sampler to user texture unit 0 */
 	glUniform1i(TextureID, 0);
 
+	/* update source selected value */
+	selectSourced = selectSource;
 }
 
 void showTitle(float fps)
@@ -113,7 +127,7 @@ void appRender(void)
 	// grab frame
 	decode_grab(&the_image);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
-	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, texture_width * texture_height * 3, the_image);
+	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, source_width * source_height * 3, the_image);
 
 	//shrDeltaT(0);
 	runKernel();
@@ -154,7 +168,8 @@ void exit_gl(void)
 	glDeleteBuffers(1, &uvbuffer);
 	glDeleteBuffers(1, &pbo_source);
 	glDeleteBuffers(1, &pbo_dest);
-	glDeleteTextures(1, &tex_screen);
+	glDeleteTextures(1, &tex_source);
+	glDeleteTextures(1, &tex_dest);
 
 }
 
@@ -279,6 +294,19 @@ void init_gl(int argc, char** argv)
 
 }
 
+void createGLBufTex(int width, int height, char property)
+{
+	if(property == GL_BUFFER_SORC){
+		createGLBuffers(&pbo_source, width, height, property);
+		createGLTexture(&tex_source, width, height);
+	}
+
+	if(property == GL_BUFFER_DEST){
+		createGLBuffers(&pbo_dest, width, height, property);
+		createGLTexture(&tex_dest, width, height);
+	}
+
+}
 
 void createGLBuffers(GLuint* pbo, int width, int height,char property)
 {
@@ -307,12 +335,12 @@ void createGLBuffers(GLuint* pbo, int width, int height,char property)
 	}
 
 	if(property == GL_BUFFER_DEST){
-		texture_width = width;
-		texture_height = height;
+		dest_width = width;
+		dest_height = height;
 	}
 }
 
-void createGLTexture(GLuint* tex_name)
+void createGLTexture(GLuint* tex_name, int width, int height)
 {
 	// create a texture
 	glGenTextures(1, tex_name);
@@ -326,7 +354,7 @@ void createGLTexture(GLuint* tex_name)
 
 	// buffer data
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 }

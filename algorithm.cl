@@ -1,3 +1,16 @@
+__kernel void getLeft(__global char *mem_source, __global char *mem_dest, int width)
+{
+	unsigned int i = 3 * get_global_id(0);
+	unsigned int j = get_global_id(1);
+	unsigned long src = j * width * 3 + i;
+	unsigned long des = j * width / 2 * 3 + i;
+	
+	mem_dest[des    ] = mem_source[src    ];
+	mem_dest[des + 1] = mem_source[src + 1];
+	mem_dest[des + 2] = mem_source[src + 2];
+
+}
+
 __kernel void algorithm(__global char* mem_source, __global char* mem_dest, int width)
 {
 	//unsigned int i = 3 * get_global_id(0);

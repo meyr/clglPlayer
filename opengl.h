@@ -13,8 +13,9 @@ void init_gl(int argc, char** argv);
 void exit_gl(void);
 void setImageAttr(int width, int height, unsigned char *image);
 void createGLBuffers(unsigned int *pbo, int width, int height, char property);
-void createGLTexture(unsigned int *tex_name);
+void createGLTexture(unsigned int *tex_name, int width, int height);
 void createGLRenderBuffers(unsigned int *_index);
+void createGLBufTex(int width, int height, char property);
 void pushImage(int width, int height, char *image);
 
 extern unsigned int orign_texture;
