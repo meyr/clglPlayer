@@ -20,8 +20,13 @@ static int dest_width;
 static int dest_height;
 static unsigned char *the_image;
 static const char titleName[] = "auo clgl player";
+static char needUpdate;
 static char selectSource;
 static char selectSourced;
+static char fullScreen;
+static char fullScreend;
+static char pause;
+static char paused;
 
 const GLfloat g_vertex_data[] = {
 	-1.0f, -1.0f, 0.0f,
@@ -107,8 +112,6 @@ void processImage(void)
 	/* set our texture sampler to user texture unit 0 */
 	glUniform1i(TextureID, 0);
 
-	/* update source selected value */
-	selectSourced = selectSource;
 }
 
 void showTitle(float fps)
@@ -116,19 +119,46 @@ void showTitle(float fps)
 	char strfps[48];
 
 	mysprintf(strfps, "%s | %s | %2.2f fps\n", titleName,
-	          selectSource ? "source" : "result", fps);
+	          selectSourced ? "source" : "result", fps);
 	glutSetWindowTitle(strfps);
 
+}
+
+void updateStatus(void)
+{
+	if(needUpdate){
+		/* update source selected value */
+		selectSourced = selectSource;
+
+		/* update screen mode value */
+		fullScreend = fullScreen;
+
+		/* update pause mode */
+		paused = pause;
+
+		needUpdate = 0;
+
+		if (fullScreend)
+			glutFullScreen();
+		else {
+			glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH) / 2,
+			                  glutGet(GLUT_SCREEN_HEIGHT) / 2);
+			glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH) / 4,
+			                   glutGet(GLUT_SCREEN_HEIGHT) / 4);
+		}
+		glutPostRedisplay();
+	}
 }
 
 void appRender(void)
 {
 	double pTime0, pTime1, pTime2;
-	// grab frame
-	decode_grab(&the_image);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
-	glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, source_width * source_height * 3, the_image);
-
+	if(!paused){
+		// grab frame
+		decode_grab(&the_image);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo_source);
+		glBufferSubData(GL_PIXEL_PACK_BUFFER_ARB, 0, source_width * source_height * 3, the_image);
+	}
 	//shrDeltaT(0);
 	runKernel();
 	//pTime0 = shrDeltaT(0);
@@ -146,6 +176,9 @@ void appRender(void)
 	glFlush();
 	//glFinish();
 	showTitle(caculateFPS());
+
+	/* update status */
+	updateStatus();
 }
 
 void timerCB(int ms)
@@ -175,34 +208,26 @@ void exit_gl(void)
 
 void appKeyboard(unsigned char key, int x, int y)
 {
-	static char fullScreen = 0;
+	
 	//this way we can exit the program cleanly
 	switch (key) {
 	case 27:
-		if(fullScreen){
-			glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH) / 2,
-			                  glutGet(GLUT_SCREEN_HEIGHT) / 2);
-			glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH) / 4,
-			                   glutGet(GLUT_SCREEN_HEIGHT) / 4);
-			fullScreen = 0;
-		}
+		fullScreen = 0;
+		needUpdate = 1;
+		break;
+	case 32:
+		pause = (pause == 0 ? 1 : 0);
+		needUpdate = 1;
 		break;
 	case 'f':
 	case 'F':
 		fullScreen = (fullScreen == 0 ? 1 : 0);
-		if (fullScreen)
-			glutFullScreen();
-		else {
-			glutReshapeWindow(glutGet(GLUT_SCREEN_WIDTH) / 2,
-			                  glutGet(GLUT_SCREEN_HEIGHT) / 2);
-			glutPositionWindow(glutGet(GLUT_SCREEN_WIDTH) / 4,
-			                   glutGet(GLUT_SCREEN_HEIGHT) / 4);
-		}
-		glutPostRedisplay();
+		needUpdate = 1;
 		break;
 	case 's':
 	case 'S':
 		selectSource = (selectSource == 0 ? 1 : 0);
+		needUpdate = 1;
 		break;
 	case 'Q':
 	case 'q':

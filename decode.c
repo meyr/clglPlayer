@@ -101,28 +101,34 @@ int decode_init(char *filename, int *width, int *height)
 }
 void decode_grab(unsigned char **pImage)
 {
+	int rtn;
 	/* Read frames */
-	while (av_read_frame(pFormatCtx, &packet) >= 0) {
-		/* Is this a packet from the video stream? */
-		if (packet.stream_index == videoStream) {
-			// Decode video frame
-			avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+	while ((rtn = av_read_frame(pFormatCtx, &packet)) == 0) {
 
-			// Did we get a video frame?
-			if (frameFinished) {
-				// Convert the image from its native format to RGB
-				sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
-				          pFrame->linesize, 0, pCodecCtx->height,
-				          pFrameRGB->data, pFrameRGB->linesize);
+			/* Is this a packet from the video stream? */
+			if (packet.stream_index == videoStream) {
+				// Decode video frame
+				avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
 
-				*pImage = (uint8_t *)(pFrameRGB->data[0]);
-				av_free_packet(&packet);
-				return;
+				// Did we get a video frame?
+				if (frameFinished) {
+					// Convert the image from its native format to RGB
+					sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+						  pFrame->linesize, 0, pCodecCtx->height,
+						  pFrameRGB->data, pFrameRGB->linesize);
+
+					*pImage = (uint8_t *)(pFrameRGB->data[0]);
+					av_free_packet(&packet);
+					return;
+				}
 			}
-		}
 
-		// Free the packet that was allocated by av_read_frame
-		av_free_packet(&packet);
+			// Free the packet that was allocated by av_read_frame
+			av_free_packet(&packet);
+	}
+	
+	if(rtn < 0) {
+		av_seek_frame(pFormatCtx, -1, 0, AVSEEK_FLAG_ANY);
 	}
 
 }
